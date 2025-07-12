@@ -15,7 +15,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/ваш-репозиторий/trivia-quiz.git
+git clone https://github.com/git@github.com:AlexZhelPy/TriviaGame.git
 ```
 2. Установите зависимости:
 
