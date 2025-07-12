@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Вопрос {{ progress.current }} из {{ progress.total }}{% endblock %}
+
+{% block extra_js %}
+<script>
+    let timeLeft = {{ time_left }};
+    const timerEl = document.getElementById('timer');
+    const answerBtns = document.querySelectorAll('.answer-btn');
+    let timerInterval;
+
+    function updateTimer() {
+        timerEl.textContent = timeLeft;
+
+        if (timeLeft <= 5) {
+            timerEl.classList.add('text-danger', 'time-up');
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            answerBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-secondary');
+            });
+            submitAnswer(null);
+        }
+
+        timeLeft--;
+    }
+
+    function submitAnswer(answer) {
+        clearInterval(timerInterval);
+
+        fetch("{{ url_for('answer') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `answer=${answer ? encodeURIComponent(answer) : ''}`
+        })
+            .then(response => response.json())
+            .then(data => {
+            if (data.complete) {
+                window.location.href = "{{ url_for('result') }}";
+            } else {
+                window.location.reload();
+            }
+        });
+    }
+
+    // Запуск таймера
+    timerInterval = setInterval(updateTimer, 1000);
+
+    // Обработка ответов
+    answerBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            answerBtns.forEach(b => b.disabled = true);
+
+            const isCorrect = this.dataset.correct === 'true';
+            if (isCorrect) {
+                this.classList.add('btn-success');
+            } else {
+                this.classList.add('btn-danger');
+                document.querySelector('.answer-btn[data-correct="true"]')
+                    .classList.add('btn-success');
+            }
+
+            setTimeout(() => submitAnswer(this.value), 1000);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="progress w-75">
+        <div class="progress-bar"
+             style="width: {{ (progress.current / progress.total * 100)|round }}%"
+             aria-valuenow="{{ progress.current }}"
+             aria-valuemin="1"
+             aria-valuemax="{{ progress.total }}"></div>
+    </div>
+    <div class="timer">
+        <i class="bi bi-stopwatch"></i> <span id="timer">{{ time_left }}</span> сек
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mb-4">
+    <span>Вопрос {{ progress.current }} из {{ progress.total }}</span>
+    <span>Счет: {{ progress.score }}</span>
+</div>
+
+<div class="question-card mb-4">
+    <h4>{{ question.text|urldecode }}</h4>
+</div>
+
+<div class="row g-3">
+    {% for answer in question.answers %}
+    <div class="col-md-6">
+        <button type="button" class="answer-btn btn btn-outline-primary w-100 py-3"
+                data-correct="{{ (answer == question.correct)|lower }}"
+                value="{{ answer }}">
+            {{ answer|urldecode }}
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

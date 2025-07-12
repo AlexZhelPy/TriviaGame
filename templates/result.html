@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">🏆 Результаты</h1>
+
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <h2 class="card-title">{{ score }} из {{ total * 3 }} баллов</h2>
+        <div class="progress my-3" style="height: 20px;">
+            <div class="progress-bar bg-success"
+                 style="width: {{ (score / (total * 3) * 100)|round }}%"
+                 aria-valuenow="{{ (score / (total * 3) * 100)|round }}"
+                 aria-valuemin="0"
+                 aria-valuemax="100"></div>
+        </div>
+        <p class="mb-1">Категория: {{ category }}</p>
+        <p>Сложность: {{ difficulty }}</p>
+    </div>
+</div>
+
+<div class="text-center">
+    <a href="{{ url_for('home') }}" class="btn btn-primary">
+        <i class="bi bi-arrow-repeat"></i> Играть снова
+    </a>
+</div>
+{% endblock %}
